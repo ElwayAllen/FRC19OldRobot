@@ -218,6 +218,7 @@ public class DriveTrain extends Subsystem implements PIDOutput {
     boolean res = (angleDifference < kToleranceDegrees) && (totalSpeed < kToleranceSpeed);
     if (res) {
       System.out.println("End turn to angle at yaw " + m_nav.getYaw());
+      m_drive.stopMotor();
       m_turnController.disable();
     }
     return res;

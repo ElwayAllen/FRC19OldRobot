@@ -12,7 +12,6 @@ import frc.util.Vec2d;
  */
 public class Limelight {
 	private static NetworkTableInstance table = null;
-	public static final double targetHeight = 19d + 25d/2d + 5.25/2d;
 	public static final int H_FOV = 54;
 	public static final int V_FOV = 41;
 	public static final double HEIGHT = 10.5;
@@ -105,15 +104,60 @@ public class Limelight {
 		return getValue("tl").getDouble(0.00);
 	}
 	
-	public double getDist() {
-		double centYAngle = Math.toRadians(getTy());
+	/**
+	 * Compute the distance to the currently-visible target from the camera, 
+	 * based on the camera's height,its aiming angle, and the central Y angle:
+	 *   distance = (targ ht - camera ht) / tan(camera angle + central y angle)
+	 * This formula is inaccurate if the target height and camera height are "too close" or the
+	 * sum of the camera angle and central y angle are too close to PI/2 radians (90 deg) -- so
+	 * robot designers should avoid those situations!
+	 * @param targetHeight Height of target above the carpet
+	 * @return Distance along the carpet from the (projection of) the camera lens
+	 * to the target
+	 * @throws IllegalStateException if no target is in view or the "target" is at or below the
+	 * horizontal
+	 */
+	public double getDist(double targetHeight) {
+		if (!isTarget()) {
+			throw new IllegalStateException("No target in view");
+		}
+		double centYAngle = getTy();
+		System.out.println("getDist:centralYAngle:" + centYAngle);
 		if (centYAngle <= -ANGLE_FROM_HORIZONTAL) {
 			// Impossible case; don't divide by zero or return
 			// garbage.  Throw a slightly more useful exception.
 			throw new IllegalStateException("Target is at or below the horizon; can't compute distance");
 		}
-		return (targetHeight-HEIGHT)/Math.tan(Math.toRadians(getTy() + ANGLE_FROM_HORIZONTAL));
+		return (targetHeight - HEIGHT) / Math.tan(Math.toRadians(centYAngle + ANGLE_FROM_HORIZONTAL));
 	}
+
+	/**
+	 * Determine the "target vector" between the camera lens and the current target
+	 * identified on the camera's screen.  The target vector is a
+	 * 2-dimensional vector, in the plane of the field, whose length is the floor distance
+	 * between the camera lens and the (floor projection of the) target, and whose 
+	 * direction is direction is the direction from the lens to the target.
+	 * The angle of the target vector is the robot's current aiming angle minus the central
+	 * x angle of the target (minus, because field angles are measured CCW and the aiming
+	 * angle is measured CW).  We determine the distance using getDist() [above].
+	 * @param robotVec Unit vector (field-relative) in the robot's current direction
+	 * @param targHeight Height of target (in units) above the floor
+	 * @return Field-relative vector from camera lens to target
+	 */
+	public Vec2d getTargetVector(Vec2d robotVec, double targHeight) {
+
+		double tx = getTx();
+		System.out.println("getTargVec:centralXAngle:" + tx);;
+
+		// Next, we can compute the distance to the target from the camera
+		double targetDistance = getDist(targHeight);
+		System.out.println("getTargVec:targetDistance:" + targetDistance);
+
+		/* (robot angle - X angle) and distance give us the target vector */
+		Vec2d targetVec = Vec2d.makePolar(targetDistance, robotVec.getTheta() - Math.toRadians(tx));
+		return targetVec;
+	}
+
 	/**
 	 * Sets LED mode of Limelight.
 	 * 

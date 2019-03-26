@@ -24,6 +24,9 @@
 
 package frc.util;
 
+import java.util.List;
+import java.util.ArrayList;
+
 /**
  * Calculator to determine route to target found by the vision system.
  * A TargetCalculator is initialized with camera-specific parameters (aim
@@ -86,8 +89,8 @@ public class TargetCalculator {
      */
     public Vec2d getTargetVector(double tx, double ty, Vec2d robotVec, double targHeight) {
 
-        System.out.println("centralXAngle:" + tx);
-        System.out.println("centralYAngle:" + ty);
+        System.out.println("getTargVec:centralXAngle:" + tx);
+        System.out.println("getTargVec:centralYAngle:" + ty);
 
         /* Next, we can compute the distance to the target from the camera, based on the camera's height,
          * its aiming angle, and the central Y angle obtained above:
@@ -97,7 +100,7 @@ public class TargetCalculator {
          * robot designers should avoid those situations!
          */
         double targetDistance = ((targHeight - m_cameraHeight) / Math.tan(Math.toRadians(ty) + m_vAimAngle));
-        System.out.println("targetDistance:" + targetDistance);
+        System.out.println("getTargVec:targetDistance:" + targetDistance);
 
         /* (robot angle - X angle) and distance give us the target vector */
         Vec2d targetVec = Vec2d.makePolar(targetDistance, robotVec.getTheta() - Math.toRadians(tx));
@@ -108,36 +111,34 @@ public class TargetCalculator {
      * Calculate the desired route to the target identified on the camera's screen
      * with the specified central x and y angles, given the necessary information about
      * the robot and the target.  We need to know:
-     *  - the robot's orientation on the field (specified as a unit vector, field-relative
-     *    pointing in the direction the robot is pointing)
+     *  - the "target vector", as returned by the "getTargetVector" method of this class
+     *    (above) -- a 2d vector between the camera lens and the target as projected onto
+     *    the floor of the field
      *  - the camera's offset from the robot centerline (specified as a vector)
      *  - the target alignment, specified as a unit vector normal (perpendicular) to the
      *    target and pointing away from the target -- i.e. in the reflected-light direction
-     *  - the target's height above the field
-     *  - the desired "normal distance" -- i.e. the minimum distance we want the robot to be
+      *  - the desired "normal distance" -- i.e. the minimum distance we want the robot to be
      *    away from the target when it makes its final turn to drive perpendicular to the
      *    target to drop off its payload.
-     * @param tx Central x angle of the target in degrees (for Limelight, -27 to +27 l to r)
-     * @param ty Central y angle of the target in degrees (for Limelight, -20.5 to 20.5 b to t)
-     * @param robotVec Unit vector (field-relative) in the robot's current direction
      * @param camVec Camera vector: vector from camera lens to robot's center; perpendicular to
      * robotVec, for correcting offset of camera from the robot's centerline
      * @param targNorm Unit vector (field-relative) pointing perpendicularly away from target
-     * @param targHeight Height of target (in units) above the floor
      * @param normDist Minimum distance from target (in units) for robot to drive normal to
      * target at end of its route
-     * @return Route to target: vectors the robot must drive to get to the target from its
+     * @return Route to target: List of vectors the robot must drive to get to the target from its
      * current position
      */
-    public RouteToTarget getRouteToTarget(double tx, double ty, Vec2d robotVec, Vec2d camVec,
-                                          Vec2d targNorm, double targHeight, double normDist) {
+    public List<Vec2d> getRouteToTarget(Vec2d targetVec, Vec2d camVec,
+                                        Vec2d targNorm, double normDist) {
 
-        Vec2d targetVec = getTargetVector(tx, ty, robotVec, targHeight);
         Vec2d normVec = targNorm.mulScalar(-normDist);
         Vec2d interceptVec = targetVec.sub(normVec);
         interceptVec = interceptVec.sub(camVec);
 
-        return new RouteToTarget(targetVec, interceptVec, normVec);
+        ArrayList<Vec2d> ret = new ArrayList<Vec2d>(2);
+        ret.add(interceptVec);
+        ret.add(normVec);
+        return ret;
     }
 
 }

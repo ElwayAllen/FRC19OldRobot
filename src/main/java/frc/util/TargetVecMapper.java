@@ -18,6 +18,9 @@ import frc.util.Vec2d;
  */
 public class TargetVecMapper {
 
+  // Well-known height of all targets above the carpet
+  public static double TARGET_HEIGHT = 19d + 25d/2d + 5.25/2d;
+
   // These are the orthogonal standard target normal vectors
   static final Vec2d[] stdTargets = {
     Vec2d.makeCart(1.0d, 0.0d),

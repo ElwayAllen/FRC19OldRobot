@@ -7,10 +7,10 @@
 
 package frc.commands;
 
+import java.util.List;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.subsystems.Nav;
 import frc.subsystems.Limelight;
-import frc.util.RouteToTarget;
 import frc.util.TargetCalculator;
 import frc.util.Vec2d;
 import frc.util.TargetVecMapper;
@@ -58,17 +58,14 @@ public class GetRouteToRocketTarget extends Command {
     }
 
     m_seen = true;
-    double tx = m_cam.getTx();
-    double ty = m_cam.getTy();
 
-    System.out.println("Target at [" + tx + "," + ty + "]");
-
-    RouteToTarget rte = m_calc.getRouteToTarget(tx, ty, m_roboVec, m_camVec,
-        m_targNorm, Limelight.targetHeight, NORM_DIST);
+    Vec2d targetVec = m_cam.getTargetVector(m_roboVec, TargetVecMapper.TARGET_HEIGHT);
+    List<Vec2d> rte = m_calc.getRouteToTarget(targetVec, m_camVec, m_targNorm, NORM_DIST);
     
-    System.out.println("Intercept: " + rte.getInterceptVec());
-    System.out.println("Norm:" + rte.getNormalVec());
-    System.out.println("Target:" + rte.getTargetDirectVec());
+    System.out.println("Intercept: " + rte.get(0).toPolarString());
+    System.out.println("Norm:" + rte.get(1).toPolarString());
+    System.out.println("Target:" + targetVec.toPolarString());
+
 
 
   }

@@ -33,6 +33,8 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 import frc.subsystems.DriveTrain;
 import frc.subsystems.Nav;
 import frc.subsystems.Limelight;
+import frc.subsystems.LimelightRouteMgr;
+import frc.subsystems.VectorDriver;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -50,6 +52,8 @@ public class Robot extends TimedRobot {
   private OI m_oi;
   private Nav m_nav;
   private Limelight m_cam;
+  private LimelightRouteMgr m_rteMgr;
+  private VectorDriver m_vecDriver;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -64,6 +68,8 @@ public class Robot extends TimedRobot {
     m_nav = new Nav(gyro);
     m_driveTrain = new DriveTrain(m_nav);
     m_cam = new Limelight();
+    m_rteMgr = new LimelightRouteMgr(m_cam, m_nav);
+    m_vecDriver = new VectorDriver(m_driveTrain, m_nav);
     m_cam.driverMode();
 
     m_oi = new OI(this);
@@ -78,7 +84,7 @@ public class Robot extends TimedRobot {
   public void disabledInit() {
     System.out.println("Running disabledInit");
     Scheduler.getInstance().removeAll();
-   }
+  }
 
   @Override
   public void disabledPeriodic() {
@@ -98,7 +104,7 @@ public class Robot extends TimedRobot {
     double yaw = m_nav.getYaw();
     SmartDashboard.putNumber("Yaw", yaw);
     SmartDashboard.putNumber("Angle", Nav.yawToFieldAngle(yaw));
-   }
+  }
 
   /**
    * This autonomous (along with the chooser code above) shows how to select
@@ -174,6 +180,14 @@ public class Robot extends TimedRobot {
 
   public Limelight getCam() {
     return m_cam;
+  }
+
+  public LimelightRouteMgr getRouteMgr() {
+    return m_rteMgr;
+  }
+
+  public VectorDriver getVectorDriver() {
+    return m_vecDriver;
   }
   
 }

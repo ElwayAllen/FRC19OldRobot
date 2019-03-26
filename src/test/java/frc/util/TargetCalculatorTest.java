@@ -23,6 +23,8 @@
  */
 package frc.util;
 
+import java.util.List;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -76,27 +78,27 @@ public class TargetCalculatorTest {
          * parallel to the normal vector.
          */
         Vec2d robotVec = Vec2d.makeCart(0.0d, 1.0d);
-        Vec2d targVec = Vec2d.makeCart(0.0d, -1.0d);
+        Vec2d targNorm = Vec2d.makeCart(0.0d, -1.0d);
         Vec2d camVec = Vec2d.ZERO;
         double targHeight = 10.0;
         double normDist = 1.0;      // drive for 1.0 units normal at end
         TargetCalculator cUtil = new TargetCalculator(0.0d, 0.0d);
-        RouteToTarget route = cUtil.getRouteToTarget(0.0d, vRes/2.0, robotVec,
-           camVec, targVec, targHeight, normDist);
+        Vec2d targetVec = cUtil.getTargetVector(0.0d, vRes/2.0d, robotVec, targHeight);
+        List<Vec2d> route = cUtil.getRouteToTarget(targetVec, camVec, targNorm, normDist);
         
-        Vec2d direct = route.getTargetDirectVec();
+        Vec2d direct = targetVec;
         double expectedDist = 26.746d;
         double expectedAng = robotVec.getTheta();
         assertEquals(expectedDist, direct.getR(), EPS);
         assertEquals(expectedAng, direct.getTheta(), EPS);
 
-        Vec2d intercept = route.getInterceptVec();
+        Vec2d intercept = route.get(0);
         expectedDist = 26.746d - 1.0d;
         expectedAng = robotVec.getTheta();
         assertEquals(expectedDist, intercept.getR(), EPS);
         assertEquals(expectedAng, intercept.getTheta(), EPS);
 
-        Vec2d norm = route.getNormalVec();
+        Vec2d norm = route.get(1);
         expectedDist = 1.0d;
         expectedAng = robotVec.getTheta();
         assertEquals(expectedDist, norm.getR(), EPS);
@@ -118,28 +120,28 @@ public class TargetCalculatorTest {
 //    @Test
     public void test2() {
         Vec2d robotVec = Vec2d.makeCart(0.0d, 1.0d);
-        Vec2d targVec = Vec2d.makeCart(0.0d, -1.0d);
+        Vec2d targNorm = Vec2d.makeCart(0.0d, -1.0d);
         Vec2d camVec = Vec2d.ZERO;
         double targHeight = 10.0;
         double normDist = 1.0;      // drive for 1.0 units normal at end
         TargetCalculator cUtil = new TargetCalculator(0.0d, 0.0d);
 
-        RouteToTarget route = cUtil.getRouteToTarget(-hRes/2.0, vRes/2.0,
-                              robotVec, camVec, targVec, targHeight, normDist);
+        Vec2d targetVec = cUtil.getTargetVector((-hRes/2.0d), vRes/2.0, robotVec, targHeight);
+        List<Vec2d> route = cUtil.getRouteToTarget(targetVec, camVec, targNorm, normDist);
 
-        Vec2d direct = route.getTargetDirectVec();
+        Vec2d direct = targetVec;
         double expectedDist = 26.746d;
         double expectedAng = Math.toRadians((-hRes/2)) + robotVec.getTheta();
         assertEquals(expectedDist, direct.getR(), EPS);
         assertEquals(expectedAng, direct.getTheta(), EPS);
     
-        Vec2d norm = route.getNormalVec();
+        Vec2d norm = route.get(0);
         expectedDist = 1.0d;
         expectedAng = robotVec.getTheta();
         assertEquals(expectedDist, norm.getR(), EPS);
         assertEquals(expectedAng, norm.getTheta(), EPS);
         
-        Vec2d intercept = route.getInterceptVec();
+        Vec2d intercept = route.get(1);
         expectedDist = 25.97d;
         expectedAng = 1.08d;
         assertEquals(expectedDist, intercept.getR(), EPS);
@@ -174,22 +176,22 @@ public class TargetCalculatorTest {
 
         double tx = 27.0d;
         double ty = 15.0;
-        RouteToTarget route = cUtil.getRouteToTarget(tx, ty, robotVec,
-                              camVec, targNorm, targHeight, normDist);
+        Vec2d targetVec = cUtil.getTargetVector(tx, ty, robotVec, targHeight);
+        List<Vec2d> route = cUtil.getRouteToTarget(targetVec, camVec, targNorm, normDist);
 
-        Vec2d direct = route.getTargetDirectVec();
+        Vec2d direct = targetVec;
         double expectedDist = 2.0d;
         double expectedAng = Math.toRadians((-hRes/2)) + robotVec.getTheta();
         assertEquals(expectedDist, direct.getR(), EPS);
         assertEquals(expectedAng, direct.getTheta(), EPS);
     
-        Vec2d norm = route.getNormalVec();
+        Vec2d norm = route.get(1);
         expectedDist = normDist;
         expectedAng = -targNorm.getTheta();
         assertEquals(expectedDist, norm.getR(), EPS);
         assertEquals(expectedAng, norm.getTheta(), EPS);
         
-        Vec2d intercept = route.getInterceptVec();
+        Vec2d intercept = route.get(0);
         expectedDist = 1.0d;
         expectedAng = Math.PI;
         assertEquals(expectedDist, intercept.getR(), EPS);

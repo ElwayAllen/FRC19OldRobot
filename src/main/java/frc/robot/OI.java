@@ -29,17 +29,20 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import frc.subsystems.DriveTrain;
 import frc.subsystems.Limelight;
+import frc.subsystems.LimelightRouteMgr;
 import frc.subsystems.Nav;
+import frc.subsystems.TestRouteMgr;
+import frc.subsystems.VectorDriver;
 import frc.commands.DriveLeftCommand;
 import frc.commands.DriveRightCommand;
 import frc.commands.DriveStraightCommand;
 import frc.commands.DriveWithJoystick;
 import frc.commands.GetRouteToTarget;
 import frc.commands.GetRouteToRocketTarget;
-import frc.commands.VectorDriveFromDash;
 import frc.commands.DriveRouteToTarget;
 import frc.commands.ResetGyroCommand;
 import frc.commands.AbortCommand;
+import frc.commands.DriveRoute;
 
 /**
  * This class is the glue that binds the controls on the physical operator
@@ -51,7 +54,7 @@ public class OI {
   private double m_maxTime = 10.0;      // max command time (secs)
   private double m_driveAngle = 90.0;   // angle to drive to (deg)
   private double m_driveDist = 24.0;    // distance to drive to (in)
-  private double m_driveVel = 24.0;     // max drive velociy (in/sec)
+  private double m_driveVel = 48.0;     // max drive velociy (in/sec)
   private Robot m_robot;
   private XboxController m_ctl;
   private AbortCommand m_abortCmd;
@@ -68,6 +71,10 @@ public class OI {
     Nav nav = m_robot.getNav();
     DriveTrain dtr = m_robot.getDriveTrain();
     Limelight cam = m_robot.getCam();
+    LimelightRouteMgr rteMgr = m_robot.getRouteMgr();
+    TestRouteMgr tRteMgr = new TestRouteMgr();
+    tRteMgr.initRoute();
+    VectorDriver vecDrv = m_robot.getVectorDriver();
 
     m_drivePower = SmartDashboard.getNumber("Drive Power", m_drivePower);
     m_maxTime = SmartDashboard.getNumber("Max Time", m_maxTime);
@@ -80,18 +87,18 @@ public class OI {
     xBut = new JoystickButton(m_ctl, 3);
     yBut = new JoystickButton(m_ctl, 4);
     SmartDashboard.putData("Abort All", m_abortCmd);
-    aBut.whenPressed(new VectorDriveFromDash(dtr, nav));
+    aBut.whenPressed(new DriveRoute(tRteMgr, vecDrv, m_driveVel));
     bBut.whenPressed(new ResetGyroCommand(nav));
-    yBut.whenPressed(new GetRouteToTarget(nav, cam));
-    aBut.whenPressed(new DriveRouteToTarget(dtr, nav, cam));
+    yBut.whenPressed(new GetRouteToTarget(rteMgr));
+    aBut.whenPressed(new DriveRouteToTarget(rteMgr, vecDrv, m_driveVel));
     xBut.whenPressed(m_abortCmd);
     SmartDashboard.putData("Drive Left", new DriveLeftCommand(m_maxTime, dtr));
     SmartDashboard.putData("Drive Right", new DriveRightCommand(m_maxTime, dtr));
     SmartDashboard.putData("DriveStraight", new DriveStraightCommand(m_maxTime, dtr));
-    SmartDashboard.putData("Route", new GetRouteToTarget(nav, cam));
+    SmartDashboard.putData("Route", new GetRouteToTarget(rteMgr));
     SmartDashboard.putData("RocketRte", new GetRouteToRocketTarget(nav, cam));
-    SmartDashboard.putData("Drive to Target", new DriveRouteToTarget(dtr, nav, cam));
-    SmartDashboard.putData("Vector Drive", new VectorDriveFromDash(dtr, nav));
+    SmartDashboard.putData("Drive to Target", new DriveRouteToTarget(rteMgr, vecDrv, m_driveVel));
+    SmartDashboard.putData("Vector Drive", new DriveRoute(tRteMgr, vecDrv, m_driveVel));
     SmartDashboard.putData("Reset gyro", new ResetGyroCommand(nav));
 
     dtr.setDefaultCommand(new DriveWithJoystick(dtr, m_ctl));
